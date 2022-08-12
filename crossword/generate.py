@@ -127,9 +127,24 @@ class CrosswordCreator():
 
         if overlap is not None:
             
+            words_to_remove=set()
             for x_word in self.domains[x]:
+                x_letter = x_word[overlap[0]]
+                y_letters = set()
                 for y_word in self.domains[y]:
-                    
+                    letter = y_word[overlap[1]]
+                    y_letters.add(letter)
+
+                if x_letter not in y_letters:
+                    words_to_remove.add(x_word)
+                    revised = True
+            
+            for word in words_to_remove:
+                self.domains[x].remove(word)
+        
+        return revised
+
+
 
 
 
