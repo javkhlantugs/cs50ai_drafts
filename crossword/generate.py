@@ -1,7 +1,7 @@
 import sys
 
 from crossword import *
-
+import itertools
 
 class CrosswordCreator():
 
@@ -159,7 +159,17 @@ class CrosswordCreator():
         Return True if arc consistency is enforced and no domains are empty;
         return False if one or more domains end up empty.
         """
-        raise NotImplementedError
+        
+        if arcs is None:
+            queue = []
+            for var_x in self.crossword.variables:
+                neighbors = self.crossword.neighbors(var_x)
+                for var_y in neighbors:
+                    queue.add((var_x, var_y))
+            for arc_x, arc_y in itertools.combinations(queue, 2):
+                if var_x
+                
+
 
     def assignment_complete(self, assignment):
         """
