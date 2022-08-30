@@ -1,3 +1,4 @@
+from queue import Empty
 import sys
 
 from crossword import *
@@ -159,16 +160,37 @@ class CrosswordCreator():
         Return True if arc consistency is enforced and no domains are empty;
         return False if one or more domains end up empty.
         """
-        
+        #assign all overlapping arcs to queue if 'arcs' is None
         if arcs is None:
-            queue = []
-            for var_x in self.crossword.variables:
-                neighbors = self.crossword.neighbors(var_x)
-                for var_y in neighbors:
-                    queue.add((var_x, var_y))
-            for arc_x, arc_y in itertools.combinations(queue, 2):
-                if var_x
+            queue = list(itertools.product(self.crossword.variables, self.crossword.variables))
+            queue = [x for x in queue if x[0] != x[1] and self.crossword.overlap[x[0], x[1]] is not None]
+        #use arcs as initial list of arcs to make consistent
+        else:
+            queue = arcs
                 
+        #while queue is not emptyu
+        while queue:
+            
+            arc = queue.pop()
+            x = arc(0)
+            y = arc(1)
+
+            #use revise to make arc consistent
+
+            if self.revise(x, y):
+
+                #if domain is empty return False
+                if not self.domains[x]:
+                    return False
+                
+                for a in (self.crossword.neighbors(x) - {y}):
+                    queue.append(a, x)
+        
+        return True
+
+            
+
+        
 
 
     def assignment_complete(self, assignment):
