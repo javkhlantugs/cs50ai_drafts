@@ -210,11 +210,19 @@ class CrosswordCreator():
         puzzle without conflicting characters); return False otherwise.
         """
 
-        for variable, word in assignment.items():
+        for variable, value in assignment.items():
             for neighbor in self.crossword.neighbors(variable).intersection(assignment.keys):
                 overlap = self.crossword.overlaps[variable, neighbor]
-                if word.overlap[0] != assignment[neighbor][overlap[1]]:
+                if value.overlap[0] != assignment[neighbor][overlap[1]]:
                     return False
+        
+        if any(variable.length != len(word) for variable, word in assignment.items()):
+            return False
+
+        if len(set(assignment.values())) != len(set(assignment.keys())):
+            return False
+
+        return True
 
     def order_domain_values(self, var, assignment):
         """
@@ -223,7 +231,24 @@ class CrosswordCreator():
         The first value in the list, for example, should be the one
         that rules out the fewest values among the neighbors of `var`.
         """
-        raise NotImplementedError
+
+        n_of_neighbor_values_deleted = {word: 0 for word in self.domains[var]}
+
+        neighbors = self.crossword.neighbors(var)
+
+        for value in self.domains[var]:
+            for neighbor in (neighbors - assignment.keys):
+                overlap = self.crossword.overlaps[var, neighbor]
+
+                for neighbor_value in self.domains[neighbor]:
+                    if value[overlap[0]] != neighbor_value[overlap[0]]:
+                        n_of_neighbor_values_deleted += 1
+        
+        list_sorted = sorted(n_of_neighbor_values_deleted.items(), key=lambda x:x[1])
+        return [a[0] for a in list_sorted]
+
+
+        
 
     def select_unassigned_variable(self, assignment):
         """
