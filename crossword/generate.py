@@ -3,6 +3,7 @@ import sys
 
 from crossword import *
 import itertools
+import copy
 
 class CrosswordCreator():
 
@@ -111,8 +112,6 @@ class CrosswordCreator():
 
         
 
-        
-        raise NotImplementedError
 
     def revise(self, x, y):
         """
@@ -163,7 +162,7 @@ class CrosswordCreator():
         #assign all overlapping arcs to queue if 'arcs' is None
         if arcs is None:
             queue = list(itertools.product(self.crossword.variables, self.crossword.variables))
-            queue = [x for x in queue if x[0] != x[1] and self.crossword.overlap[x[0], x[1]] is not None]
+            queue = [x for x in queue if x[0] != x[1] and self.crossword.overlaps[x[0], x[1]] is not None]
         #use arcs as initial list of arcs to make consistent
         else:
             queue = arcs
@@ -172,8 +171,8 @@ class CrosswordCreator():
         while queue:
             
             arc = queue.pop()
-            x = arc(0)
-            y = arc(1)
+            x = arc[0]
+            y = arc[1]
 
             #use revise to make arc consistent
 
@@ -184,7 +183,7 @@ class CrosswordCreator():
                     return False
                 
                 for a in (self.crossword.neighbors(x) - {y}):
-                    queue.append(a, x)
+                    queue.append((a, x))
         
         return True
 
@@ -211,9 +210,9 @@ class CrosswordCreator():
         """
 
         for variable, value in assignment.items():
-            for neighbor in self.crossword.neighbors(variable).intersection(assignment.keys):
+            for neighbor in self.crossword.neighbors(variable).intersection(assignment.keys()):
                 overlap = self.crossword.overlaps[variable, neighbor]
-                if value.overlap[0] != assignment[neighbor][overlap[1]]:
+                if value[overlap[0]] != assignment[neighbor][overlap[1]]:
                     return False
         
         if any(variable.length != len(word) for variable, word in assignment.items()):
@@ -237,12 +236,12 @@ class CrosswordCreator():
         neighbors = self.crossword.neighbors(var)
 
         for value in self.domains[var]:
-            for neighbor in (neighbors - assignment.keys):
+            for neighbor in (neighbors - assignment.keys()):
                 overlap = self.crossword.overlaps[var, neighbor]
 
                 for neighbor_value in self.domains[neighbor]:
-                    if value[overlap[0]] != neighbor_value[overlap[0]]:
-                        n_of_neighbor_values_deleted += 1
+                    if value[overlap[0]] != neighbor_value[overlap[1]]:
+                        n_of_neighbor_values_deleted[value] += 1
         
         list_sorted = sorted(n_of_neighbor_values_deleted.items(), key=lambda x:x[1])
         return [a[0] for a in list_sorted]
@@ -264,10 +263,10 @@ class CrosswordCreator():
         number_of_unassigned_variable_values = {variable: len(self.domains[variable]) for variable in unassigned}
         unassigned_variables_ranked = sorted(number_of_unassigned_variable_values.items(), key=lambda x: x[1])
         
-        if len(unassigned_variables_ranked == 1 or unassigned_variables_ranked[0][1] != unassigned_variables_ranked[1][1]):
+        if len(unassigned_variables_ranked) == 1 or unassigned_variables_ranked[0][1] != unassigned_variables_ranked[1][1]:
             return unassigned_variables_ranked[0][0]
         else:
-            number_of_neighbors = {variable: len(self.crossword.neighbors(variable)) for variable in self.unassigned}
+            number_of_neighbors = {variable: len(self.crossword.neighbors(variable)) for variable in unassigned}
             sorted_by_total_neighbors = sorted(number_of_neighbors.items(), key=lambda x: x[1])
             return sorted_by_total_neighbors[-1][0]
 
@@ -280,7 +279,20 @@ class CrosswordCreator():
 
         If no assignment is possible, return None.
         """
-        raise NotImplementedError
+        if self.assignment_complete(assignment):
+            return assignment
+
+        var = self.select_unassigned_variable(assignment)
+        for value in self.order_domain_values(var, assignment):
+            test = copy.deepcopy(assignment)
+            test[var] = value
+            if self.consistent(test):
+                assignment[var] = value
+                result = self.backtrack(assignment)
+                if result is not None:
+                    return result
+            assignment.pop(var, None)
+        return None
 
 
 def main():
