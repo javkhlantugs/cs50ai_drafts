@@ -49,7 +49,7 @@ def load_data(filename):
         - PageValues, a floating point number
         - SpecialDay, a floating point number
         - Month, an index from 0 (January) to 11 (December)
-        - OperatingSystems, an integer
+        - Operating Systems, an integer
         - Browser, an integer
         - Region, an integer
         - TrafficType, an integer
