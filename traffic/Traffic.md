@@ -30,7 +30,8 @@
 5. - 1 Dropout layer rate changed again to (Rate 0.7)
    - Result: 0.0548
 
-6. - Bringing the dropout rate back to 0.6
+6. - Bringing the dropout rate to 0.4
+   - Result: 0.0548
 
 ## Conclusion
 The first step with just one convolutional layer and one Maxpooling layer, the result was terrible with accuracy less than ten percent. Adding another convolutional layer made a huge improvement bumping the accuracy to more than 90% but the difference in accuracy were insignificant after other additions and tweeking. Increasing the dropout rate to more than 0.6 significantly decreased the performance.
